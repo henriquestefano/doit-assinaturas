@@ -31,13 +31,13 @@ MEMOJI_Y = 99        # 32.9 * 3
 MEMOJI_SIZE = 304    # 101.2 * 3
 
 NAME_X = 612         # 203.8 * 3
-NAME_Y = 73          # 24.2 * 3
-NAME_FONT_SIZE = 42
+NAME_Y = 120         # ajustado para baixo
+NAME_FONT_SIZE = 54
 NAME_COLOR = "#000000"
 
 ROLE_X = 612         # 203.8 * 3
-ROLE_Y = 127         # 42.4 * 3
-ROLE_FONT_SIZE = 28
+ROLE_Y = 185         # ajustado para baixo
+ROLE_FONT_SIZE = 36
 ROLE_COLOR = "#333333"
 
 REGION_DEFAULTS = {
@@ -76,22 +76,27 @@ def load_font(font_name: str, size: int):
             except (IOError, OSError):
                 continue
 
-    # Fallback: try system fonts
-    system_fallbacks = {
-        "league_spartan_bold": ["Arial Bold", "ArialBold", "Helvetica-Bold", "DejaVuSans-Bold"],
-        "open_sans": ["Arial", "Helvetica", "DejaVuSans"],
-    }
+    # Fallback: try common system font paths
+    system_fallbacks = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/TTF/DejaVuSans.ttf",
+        "/System/Library/Fonts/Helvetica.ttc",
+        "C:\\Windows\\Fonts\\arial.ttf",
+    ]
 
-    for fallback in system_fallbacks.get(font_name, []):
-        try:
-            return ImageFont.truetype(fallback, size)
-        except (IOError, OSError):
-            continue
+    for fallback in system_fallbacks:
+        if os.path.exists(fallback):
+            try:
+                return ImageFont.truetype(fallback, size)
+            except (IOError, OSError):
+                continue
 
-    # Last resort: Pillow default (won't respect size well, but won't crash)
+    # Last resort: Pillow default with size
     try:
-        return ImageFont.load_default()
-    except Exception:
+        return ImageFont.truetype("DejaVuSans.ttf", size)
+    except (IOError, OSError):
         return ImageFont.load_default()
 
 
