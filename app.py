@@ -30,14 +30,14 @@ MEMOJI_X = 164       # 54.5 * 3
 MEMOJI_Y = 99        # 32.9 * 3
 MEMOJI_SIZE = 304    # 101.2 * 3
 
-NAME_X = 612         # 203.8 * 3
-NAME_Y = 120         # ajustado para baixo
-NAME_FONT_SIZE = 54
+NAME_X = 611         # 203.8 * 3
+NAME_Y = 73          # 24.2 * 3
+NAME_FONT_SIZE = 48
 NAME_COLOR = "#000000"
 
-ROLE_X = 612         # 203.8 * 3
-ROLE_Y = 185         # ajustado para baixo
-ROLE_FONT_SIZE = 36
+ROLE_X = 611         # 203.8 * 3
+ROLE_Y = 127         # 42.4 * 3
+ROLE_FONT_SIZE = 28
 ROLE_COLOR = "#333333"
 
 REGION_DEFAULTS = {
