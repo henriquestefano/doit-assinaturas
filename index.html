@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Assinatura - DOit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Open+Sans:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0; padding: 24px;
+      max-width: 1300px; margin-left: auto; margin-right: auto;
+      background-color: #f9fafb; color: #1f2937; line-height: 1.5;
+    }
+    header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
+    header h1 { font-size: 1.6rem; font-weight: 700; color: #111827; margin: 0 0 6px 0; }
+    header p { font-size: 0.9rem; color: #6b7280; margin: 0; }
+
+    main { display: grid; grid-template-columns: 360px 1fr; gap: 28px; align-items: start; }
+    @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 22px; }
+    .card h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 16px 0; }
+
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 0.78rem; font-weight: 500; color: #555; margin-bottom: 3px; }
+    .field input, .field select {
+      width: 100%; padding: 8px 10px; font-size: 0.85rem;
+      border: 1px solid #d1d5db; border-radius: 5px; font-family: inherit;
+    }
+    .field input:focus, .field select:focus { outline: none; border-color: #2563eb; }
+
+    .region-tabs { display: flex; border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
+    .region-tab {
+      flex: 1; padding: 9px; text-align: center; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; border: none; background: #fff; color: #374151;
+    }
+    .region-tab:first-child { border-right: 1px solid #d1d5db; }
+    .region-tab.active-br { background: #fbbf24; color: #000; font-weight: 600; }
+    .region-tab.active-us { background: #2563eb; color: #fff; font-weight: 600; }
+
+    .upload-box {
+      border: 2px dashed #d1d5db; border-radius: 8px; padding: 20px;
+      text-align: center; cursor: pointer; margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    .upload-box:hover, .upload-box.dragover { border-color: #2563eb; background: #eff6ff; }
+    .upload-box img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 8px; }
+    .upload-box p { margin: 0; font-size: 0.78rem; color: #6b7280; }
+
+    .output-section { display: flex; flex-direction: column; gap: 20px; }
+
+    #preview-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; min-height: 130px; overflow: auto; }
+
+    .code-box {
+      background: #1e293b; color: #e2e8f0; font-family: Menlo, Consolas, monospace;
+      font-size: 0.72rem; line-height: 1.5; padding: 14px; border-radius: 6px;
+      overflow: auto; max-height: 180px; white-space: pre-wrap; word-break: break-all; margin: 0 0 10px;
+    }
+
+    .btn {
+      padding: 8px 14px; font-size: 0.82rem; font-weight: 500; color: #fff;
+      background: #2563eb; border: none; border-radius: 5px; cursor: pointer;
+    }
+    .btn:hover { background: #1d4ed8; }
+    #feedback, #feedback-visual { font-size: 0.78rem; color: #16a34a; margin-left: 8px; opacity: 0; transition: opacity 0.3s; }
+    #feedback.show, #feedback-visual.show { opacity: 1; }
+    .note { font-size: 0.72rem; color: #888; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gerador de Assinatura de E-mail</h1>
+    <p>DOit — Crie sua assinatura profissional</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Dados da Assinatura</h2>
+
+      <div class="region-tabs">
+        <button class="region-tab active-br" id="tab-br" type="button">🇧🇷 Brasil</button>
+        <button class="region-tab" id="tab-us" type="button">🇺🇸 USA</button>
+      </div>
+
+      <div class="upload-box" id="upload-box">
+        <p>Arraste o memoji aqui ou clique para selecionar</p>
+      </div>
+      <input type="file" id="file-input" accept="image/*" style="display:none">
+
+      <div class="field"><label>Nome</label><input type="text" id="f-name" placeholder="Nome completo"></div>
+      <div class="field"><label>Cargo</label><input type="text" id="f-role" placeholder="Cargo / Função"></div>
+      <div class="field"><label>E-mail</label><input type="email" id="f-email" placeholder="email@doit.com.br"></div>
+      <div class="field"><label>Telefone</label><input type="tel" id="f-phone" placeholder="(11) 91305-2222"></div>
+      <div class="field"><label>Instagram</label><input type="text" id="f-instagram" placeholder="doitsistema"></div>
+      <div class="field"><label>Website</label><input type="text" id="f-website" placeholder="www.doit.com.br"></div>
+
+      <p class="note">* Para colar no Gmail: clique em "Copiar Assinatura" e cole (Ctrl+V / Cmd+V) nas configurações de assinatura do Gmail.</p>
+
+      <details style="margin-top:12px;border:1px solid #e5e7eb;border-radius:6px;padding:10px;">
+        <summary style="cursor:pointer;font-size:0.8rem;font-weight:600;color:#555;">⚙️ Ajustar posições (avançado)</summary>
+        <div style="margin-top:10px;">
+          <div class="field"><label>Memoji X: <span id="val-mx">164</span></label><input type="range" id="sl-mx" min="0" max="600" value="164" oninput="updatePos()"></div>
+          <div class="field"><label>Memoji Y: <span id="val-my">99</span></label><input type="range" id="sl-my" min="0" max="400" value="99" oninput="updatePos()"></div>
+          <div class="field"><label>Memoji Tamanho: <span id="val-mr">304</span></label><input type="range" id="sl-mr" min="100" max="500" value="304" oninput="updatePos()"></div>
+          <div class="field"><label>Nome X: <span id="val-nx">612</span></label><input type="range" id="sl-nx" min="300" max="1000" value="612" oninput="updatePos()"></div>
+          <div class="field"><label>Nome Y: <span id="val-ny">73</span></label><input type="range" id="sl-ny" min="0" max="400" value="73" oninput="updatePos()"></div>
+          <div class="field"><label>Cargo X: <span id="val-rx">612</span></label><input type="range" id="sl-rx" min="300" max="1000" value="612" oninput="updatePos()"></div>
+          <div class="field"><label>Cargo Y: <span id="val-ry">127</span></label><input type="range" id="sl-ry" min="0" max="400" value="127" oninput="updatePos()"></div>
+        </div>
+      </details>
+    </section>
+
+    <section class="output-section">
+      <div class="card">
+        <h2>Preview da Assinatura</h2>
+        <div id="preview-box">
+          <p style="color:#aaa;text-align:center;margin:30px 0;">Preencha os campos ao lado</p>
+        </div>
+        <div style="margin-top:12px;">
+          <button class="btn" id="btn-copy-visual" type="button">📋 Copiar Assinatura</button>
+          <span id="feedback-visual">✓ Copiado! Cole no Gmail.</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="code-header" id="code-toggle" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <h2 style="margin:0;">Código HTML</h2>
+          <span id="toggle-icon" style="font-size:1.2rem;">▶</span>
+        </div>
+        <div id="code-wrapper" style="display:none;margin-top:12px;">
+          <div class="code-box" id="code-output"></div>
+          <button class="btn" id="btn-copy" type="button">Copiar HTML</button>
+          <span id="feedback">✓ Copiado!</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <canvas id="cv" width="1200" height="600" style="display:none"></canvas>
+
+  <script src="assinaturas/templates-data.js"></script>
+  <script>
+  (function(){
+    // ========== CONFIG ==========
+    var REGIONS = {
+      brasil: {
+        templateSrc: TEMPLATE_BR,
+        instagram: 'doitsistema',
+        website: 'www.doit.com.br'
+      },
+      usa: {
+        templateSrc: TEMPLATE_USA,
+        instagram: 'doit.systems',
+        website: 'www.doiterp.com'
+      }
+    };
+
+    // Posições no canvas 1200x600 (template é 1200x600, exibido em 400x200)
+    // Todas as posições são da escala 400x200 multiplicadas por 3
+
+    // Memoji: posição e tamanho
+    var MEMOJI_X = 164;      // 54.5 * 3
+    var MEMOJI_Y = 99;       // 32.9 * 3
+    var MEMOJI_SIZE = 304;   // 101.2 * 3
+
+    // Nome (League Spartan Bold)
+    var NAME_X = 612;        // 203.8 * 3
+    var NAME_Y = 73;         // 24.2 * 3
+    var NAME_W = 504;        // 168 * 3
+    var NAME_H = 48;         // 16 * 3
+    var NAME_FONT = 'bold 42px "League Spartan", sans-serif';
+    var NAME_COLOR = '#000000';
+
+    // Cargo (Open Sans Regular)
+    var ROLE_X = 612;        // 203.8 * 3
+    var ROLE_Y = 127;        // 42.4 * 3
+    var ROLE_W = 504;        // 168 * 3
+    var ROLE_H = 28;         // 9.3 * 3
+    var ROLE_FONT = '28px "Open Sans", sans-serif';
+    var ROLE_COLOR = '#333333';
+
+    // ========== STATE ==========
+    var currentRegion = 'brasil';
+    var memojiImg = null;
+    var templateImgs = {};
+    var templatesLoaded = 0;
+
+    // ========== DOM ==========
+    var tabBr = document.getElementById('tab-br');
+    var tabUs = document.getElementById('tab-us');
+    var uploadBox = document.getElementById('upload-box');
+    var fileInput = document.getElementById('file-input');
+    var previewBox = document.getElementById('preview-box');
+    var codeOutput = document.getElementById('code-output');
+    var btnCopy = document.getElementById('btn-copy');
+    var feedbackEl = document.getElementById('feedback');
+    var canvas = document.getElementById('cv');
+    var ctx = canvas.getContext('2d');
+
+    var fields = {
+      name: document.getElementById('f-name'),
+      role: document.getElementById('f-role'),
+      email: document.getElementById('f-email'),
+      phone: document.getElementById('f-phone'),
+      instagram: document.getElementById('f-instagram'),
+      website: document.getElementById('f-website')
+    };
+
+    // ========== LOAD TEMPLATES ==========
+    function loadTemplates() {
+      ['brasil','usa'].forEach(function(r){
+        var img = new Image();
+        img.onload = function(){
+          templateImgs[r] = img;
+          templatesLoaded++;
+          if (templatesLoaded === 2) render();
+        };
+        img.onerror = function(){
+          console.error('Erro ao carregar template: ' + REGIONS[r].templateSrc);
+        };
+        img.src = REGIONS[r].templateSrc;
+      });
+    }
+
+    // ========== REGION ==========
+    tabBr.addEventListener('click', function(){ setRegion('brasil'); });
+    tabUs.addEventListener('click', function(){ setRegion('usa'); });
+
+    function setRegion(r) {
+      currentRegion = r;
+      tabBr.className = 'region-tab' + (r === 'brasil' ? ' active-br' : '');
+      tabUs.className = 'region-tab' + (r === 'usa' ? ' active-us' : '');
+      fields.instagram.value = REGIONS[r].instagram;
+      fields.website.value = REGIONS[r].website;
+      render();
+    }
+
+    // ========== UPLOAD (click + drag-and-drop) ==========
+    uploadBox.addEventListener('click', function(){ fileInput.click(); });
+
+    // Drag and drop
+    uploadBox.addEventListener('dragover', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      uploadBox.classList.add('dragover');
+    });
+    uploadBox.addEventListener('dragleave', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      uploadBox.classList.remove('dragover');
+    });
+    uploadBox.addEventListener('drop', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      uploadBox.classList.remove('dragover');
+      var files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        processFile(files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', function(e){
+      if (e.target.files && e.target.files.length > 0) {
+        processFile(e.target.files[0]);
+      }
+    });
+
+    function processFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        var img = new Image();
+        img.onload = function(){
+          memojiImg = img;
+          uploadBox.innerHTML = '<img src="'+ev.target.result+'" alt="Memoji"><p>Arraste outro ou clique para trocar</p>';
+          render();
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ========== INPUTS ==========
+    Object.keys(fields).forEach(function(k){
+      fields[k].addEventListener('input', render);
+    });
+
+    // ========== RENDER ==========
+    function render() {
+      var name = fields.name.value.trim();
+      var role = fields.role.value.trim();
+      var email = fields.email.value.trim();
+      var phone = fields.phone.value.trim();
+      var ig = fields.instagram.value.trim();
+      var web = fields.website.value.trim();
+
+      if (!name && !role && !email && !phone && !ig && !web && !memojiImg) {
+        previewBox.innerHTML = '<p style="color:#aaa;text-align:center;margin:30px 0;">Preencha os campos ao lado</p>';
+        codeOutput.textContent = '';
+        return;
+      }
+
+      var bgDataUrl = compositeImage(name, role);
+      if (!bgDataUrl) return;
+
+      var html = buildSignatureHTML(bgDataUrl, ig, phone, email, web);
+      previewBox.innerHTML = html;
+      codeOutput.textContent = html;
+    }
+
+    // ========== COMPOSITE IMAGE ==========
+    function compositeImage(name, role) {
+      var tpl = templateImgs[currentRegion];
+      if (!tpl) return null;
+
+      canvas.width = 1200;
+      canvas.height = 600;
+      ctx.clearRect(0, 0, 1200, 600);
+
+      // 1. Draw template background
+      ctx.drawImage(tpl, 0, 0, 1200, 600);
+
+      // 2. Draw memoji (circular clip inside the template circle)
+      if (memojiImg) {
+        ctx.save();
+        // Clip as circle centered in the memoji area
+        var centerX = MEMOJI_X + MEMOJI_SIZE / 2;
+        var centerY = MEMOJI_Y + MEMOJI_SIZE / 2;
+        var radius = MEMOJI_SIZE / 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(memojiImg, MEMOJI_X, MEMOJI_Y, MEMOJI_SIZE, MEMOJI_SIZE);
+        ctx.restore();
+      }
+
+      // 3. Draw name (League Spartan Bold)
+      if (name) {
+        ctx.fillStyle = NAME_COLOR;
+        ctx.font = NAME_FONT;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(name, NAME_X, NAME_Y, NAME_W);
+      }
+
+      // 4. Draw role (Open Sans)
+      if (role) {
+        ctx.fillStyle = ROLE_COLOR;
+        ctx.font = ROLE_FONT;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(role, ROLE_X, ROLE_Y, ROLE_W);
+      }
+
+      return canvas.toDataURL('image/png');
+    }
+
+    // ========== BUILD HTML ==========
+    function buildSignatureHTML(bgUrl, ig, phone, email, web) {
+      var cs = 'margin:1px;font-size:12px;font-family:Arial,Helvetica,sans-serif;line-height:18px;';
+      var ls = 'color:black;text-decoration:none';
+      var links = '';
+
+      if (ig) links += '<div style="'+cs+'"><a href="https://www.instagram.com/'+ig+'/" target="_blank" style="'+ls+'">'+esc(ig)+'</a></div>';
+      if (phone) links += '<div style="'+cs+'"><a href="https://api.whatsapp.com/send/?phone='+fmtPhone(phone)+'" target="_blank" style="'+ls+'">'+esc(phone)+'</a></div>';
+      if (email) links += '<div style="'+cs+'"><a href="mailto:'+esc(email)+'" target="_blank" style="'+ls+'">'+esc(email)+'</a></div>';
+      if (web) links += '<div style="'+cs+'"><a href="https://'+web+'/" target="_blank" style="'+ls+'">'+esc(web)+'</a></div>';
+
+      return '<table border="0" cellpadding="0" cellspacing="0" style="background:url(\''+bgUrl+'\') no-repeat top/100% auto;font-size:15px;font-family:\'Open Sauce\',sans-serif;height:200px;padding:10px 20px 40px 225px;table-layout:fixed;width:400px;"><tbody><tr><td style="padding-top:35px;"><div style="margin:-25px 0 0 0;"></div></td></tr><tr><td height="0" style="padding-top:24px;">'+links+'</td></tr></tbody></table>';
+    }
+
+    // ========== HELPERS ==========
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function fmtPhone(p) { if(p.charAt(0)==='+') return '%2B'+p.slice(1).replace(/\D/g,''); return '%2B55'+p.replace(/\D/g,''); }
+
+    // ========== POSITION SLIDERS ==========
+    window.updatePos = function() {
+      MEMOJI_X = parseInt(document.getElementById('sl-mx').value);
+      MEMOJI_Y = parseInt(document.getElementById('sl-my').value);
+      MEMOJI_SIZE = parseInt(document.getElementById('sl-mr').value);
+      NAME_X = parseInt(document.getElementById('sl-nx').value);
+      NAME_Y = parseInt(document.getElementById('sl-ny').value);
+      ROLE_X = parseInt(document.getElementById('sl-rx').value);
+      ROLE_Y = parseInt(document.getElementById('sl-ry').value);
+
+      document.getElementById('val-mx').textContent = MEMOJI_X;
+      document.getElementById('val-my').textContent = MEMOJI_Y;
+      document.getElementById('val-mr').textContent = MEMOJI_SIZE;
+      document.getElementById('val-nx').textContent = NAME_X;
+      document.getElementById('val-ny').textContent = NAME_Y;
+      document.getElementById('val-rx').textContent = ROLE_X;
+      document.getElementById('val-ry').textContent = ROLE_Y;
+
+      render();
+    };
+
+    // ========== TOGGLE CODE ==========
+    var codeToggle = document.getElementById('code-toggle');
+    var codeWrapper = document.getElementById('code-wrapper');
+    var toggleIcon = document.getElementById('toggle-icon');
+    codeToggle.addEventListener('click', function(){
+      if (codeWrapper.style.display === 'none') {
+        codeWrapper.style.display = 'block';
+        toggleIcon.textContent = '▼';
+      } else {
+        codeWrapper.style.display = 'none';
+        toggleIcon.textContent = '▶';
+      }
+    });
+
+    // ========== COPY VISUAL (for Gmail) ==========
+    var btnCopyVisual = document.getElementById('btn-copy-visual');
+    var feedbackVisual = document.getElementById('feedback-visual');
+
+    btnCopyVisual.addEventListener('click', function(){
+      var previewContent = previewBox.innerHTML;
+      if (!previewContent || previewContent.indexOf('Preencha') !== -1) return;
+
+      // Create a temporary container with the HTML content
+      var tempDiv = document.createElement('div');
+      tempDiv.innerHTML = previewContent;
+      tempDiv.style.position = 'fixed';
+      tempDiv.style.left = '-9999px';
+      document.body.appendChild(tempDiv);
+
+      // Select the content
+      var range = document.createRange();
+      range.selectNodeContents(tempDiv);
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      // Copy as rich text
+      try {
+        document.execCommand('copy');
+        feedbackVisual.classList.add('show');
+        setTimeout(function(){ feedbackVisual.classList.remove('show'); }, 3000);
+      } catch(e) {
+        // fallback: try clipboard API with HTML
+        var blob = new Blob([previewContent], {type: 'text/html'});
+        var item = new ClipboardItem({'text/html': blob});
+        navigator.clipboard.write([item]).then(function(){
+          feedbackVisual.classList.add('show');
+          setTimeout(function(){ feedbackVisual.classList.remove('show'); }, 3000);
+        });
+      }
+
+      selection.removeAllRanges();
+      document.body.removeChild(tempDiv);
+    });
+
+    // ========== COPY HTML CODE ==========
+    btnCopy.addEventListener('click', function(){
+      var text = codeOutput.textContent;
+      if (!text) return;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(showFb);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); showFb(); } catch(e){}
+        document.body.removeChild(ta);
+      }
+    });
+
+    function showFb() {
+      feedbackEl.classList.add('show');
+      setTimeout(function(){ feedbackEl.classList.remove('show'); }, 2000);
+    }
+
+    // ========== INIT ==========
+    fields.instagram.value = REGIONS.brasil.instagram;
+    fields.website.value = REGIONS.brasil.website;
+    loadTemplates();
+  })();
+  </script>
+</body>
+</html>
