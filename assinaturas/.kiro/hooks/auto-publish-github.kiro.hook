@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Auto-publicar no GitHub",
+  "description": "Sempre que um arquivo do projeto for editado, faz commit e push automaticamente para o GitHub, mantendo o site publicado atualizado.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.html",
+      "*.js",
+      "*.css"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd /Users/henrique/Documents/Kiro && git add . && git commit -m \"Atualização automática - $(date '+%d/%m/%Y %H:%M')\" && git push origin main"
+  }
+}
