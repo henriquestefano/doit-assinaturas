@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Assinatura - DOit</title>
+  <style>
+/* Email Signature Manager - Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #f9fafb;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+header p {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-section {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.form-section h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 20px 0;
+}
+
+.field-group {
+  margin-bottom: 16px;
+}
+
+.field-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.field-group input,
+.field-group select {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #1f2937;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field-group input:focus,
+.field-group select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.field-group input::placeholder {
+  color: #9ca3af;
+}
+
+.field-group input.invalid {
+  border-color: #dc2626;
+}
+
+.field-group input.invalid:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.field-group input.valid {
+  border-color: #16a34a;
+}
+
+.field-group input.valid:focus {
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.error-message {
+  display: none;
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 4px;
+}
+
+.error-message:not(:empty) {
+  display: block;
+}
+
+.output-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.preview-section,
+.code-section {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.preview-section h2,
+.code-section h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+#preview {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 20px;
+  min-height: 120px;
+}
+
+.code-section pre {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 320px;
+  margin: 0 0 12px 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.code-section code {
+  font-family: inherit;
+}
+
+#copy-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: #ffffff;
+  background-color: #2563eb;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+#copy-btn:hover {
+  background-color: #1d4ed8;
+}
+
+#copy-btn:active {
+  background-color: #1e40af;
+  transform: scale(0.98);
+}
+
+#copy-feedback {
+  font-size: 0.8rem;
+  color: #16a34a;
+  font-weight: 500;
+  margin-left: 10px;
+}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gerador de Assinatura de E-mail</h1>
+    <p>DOit — Crie sua assinatura profissional</p>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>Dados da Assinatura</h2>
+
+      <div class="field-group">
+        <label for="region">Região</label>
+        <select id="region">
+          <option value="brasil" selected>Brasil</option>
+          <option value="usa">USA</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label for="name">Nome</label>
+        <input type="text" id="name" placeholder="Nome completo">
+        <span class="error-message" id="name-error"></span>
+      </div>
+
+      <div class="field-group">
+        <label for="role">Cargo</label>
+        <input type="text" id="role" placeholder="Cargo / Função">
+        <span class="error-message" id="role-error"></span>
+      </div>
+
+      <div class="field-group">
+        <label for="photoUrl">URL da foto</label>
+        <input type="text" id="photoUrl" placeholder="https://...">
+        <span class="error-message" id="photoUrl-error"></span>
+      </div>
+
+      <div class="field-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="email@doit.com.br">
+        <span class="error-message" id="email-error"></span>
+      </div>
+
+      <div class="field-group">
+        <label for="phone">Telefone</label>
+        <input type="tel" id="phone" placeholder="(11) 91305-2222">
+        <span class="error-message" id="phone-error"></span>
+      </div>
+
+      <div class="field-group">
+        <label for="instagram">Instagram</label>
+        <input type="text" id="instagram" placeholder="doitsistema">
+        <span class="error-message" id="instagram-error"></span>
+      </div>
+
+      <div class="field-group">
+        <label for="website">Website</label>
+        <input type="text" id="website" placeholder="www.doit.com.br">
+        <span class="error-message" id="website-error"></span>
+      </div>
+    </section>
+
+    <section class="output-section">
+      <div class="preview-section">
+        <h2>Preview da Assinatura</h2>
+        <div id="preview"></div>
+      </div>
+
+      <div class="code-section">
+        <h2>Código HTML</h2>
+        <pre><code id="code-output"></code></pre>
+        <button id="copy-btn">Copiar HTML</button>
+        <span id="copy-feedback" hidden>Copiado!</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+// ============================================================
+// Signature Generator
+// ============================================================
+
+function formatPhoneForWhatsApp(phone) {
+  if (phone.startsWith('+')) {
+    const digits = phone.slice(1).replace(/\D/g, '');
+    return '%2B' + digits;
+  }
+  const digits = phone.replace(/\D/g, '');
+  return '%2B55' + digits;
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function generateSignature(data) {
+  const { name, role, photoUrl, email, phone, instagram, website } = data;
+
+  let leftColumnContent = '';
+
+  if (photoUrl) {
+    const altText = name ? escapeHtml(name) : 'Foto';
+    leftColumnContent += '<img src="' + escapeHtml(photoUrl) + '" alt="' + altText + '" style="width: 200px; display: block;" />';
+  }
+
+  if (name) {
+    leftColumnContent += '<p style="margin: 5px 0 0 0; font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-size: 14px;">' + escapeHtml(name) + '</p>';
+  }
+
+  if (role) {
+    leftColumnContent += '<p style="margin: 2px 0 0 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px;">' + escapeHtml(role) + '</p>';
+  }
+
+  var contactStyle = 'margin: 1px; font-size: 12px; font-family: Arial, Helvetica, sans-serif; line-height: 18px;';
+  var linkStyle = 'color: black; text-decoration: none';
+  let rightColumnContent = '';
+
+  if (instagram) {
+    rightColumnContent += '<div style="' + contactStyle + '"><a href="https://www.instagram.com/' + instagram + '/" target="_blank" style="' + linkStyle + '">' + escapeHtml(instagram) + '</a></div>';
+  }
+
+  if (phone) {
+    const encodedPhone = formatPhoneForWhatsApp(phone);
+    rightColumnContent += '<div style="' + contactStyle + '"><a href="https://api.whatsapp.com/send/?phone=' + encodedPhone + '" target="_blank" style="' + linkStyle + '">' + escapeHtml(phone) + '</a></div>';
+  }
+
+  if (email) {
+    rightColumnContent += '<div style="' + contactStyle + '"><a href="mailto:' + escapeHtml(email) + '" target="_blank" style="' + linkStyle + '">' + escapeHtml(email) + '</a></div>';
+  }
+
+  if (website) {
+    rightColumnContent += '<div style="' + contactStyle + '"><a href="https://' + website + '/" target="_blank" style="' + linkStyle + '">' + escapeHtml(website) + '</a></div>';
+  }
+
+  const html = '<table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td style="width: 225px; vertical-align: top; padding: 10px;">' + leftColumnContent + '</td><td style="vertical-align: top; padding-top: 20px;">' + rightColumnContent + '</td></tr></tbody></table>';
+
+  return html;
+}
+
+// ============================================================
+// App Logic
+// ============================================================
+
+const REGION_DEFAULTS = {
+  brasil: { instagram: 'doitsistema', website: 'www.doit.com.br' },
+  usa: { instagram: 'doit.systems', website: 'www.doiterp.com' }
+};
+
+function validateEmail(email) {
+  if (!email) return true;
+  const atIndex = email.indexOf('@');
+  if (atIndex < 1) return false;
+  const afterAt = email.slice(atIndex + 1);
+  if (!afterAt || afterAt.length === 0) return false;
+  const dotIndex = afterAt.indexOf('.');
+  if (dotIndex < 1) return false;
+  if (dotIndex === afterAt.length - 1) return false;
+  return true;
+}
+
+function validatePhone(phone) {
+  if (!phone) return true;
+  const pattern = /^\+?[\d()\s-]+$/;
+  return pattern.test(phone);
+}
+
+function validatePhotoUrl(url) {
+  if (!url) return true;
+  return url.startsWith('https://');
+}
+
+function handleRegionChange(region) {
+  const defaults = REGION_DEFAULTS[region];
+  if (!defaults) return;
+
+  const instagramInput = document.getElementById('instagram');
+  const websiteInput = document.getElementById('website');
+
+  if (instagramInput) instagramInput.value = defaults.instagram;
+  if (websiteInput) websiteInput.value = defaults.website;
+
+  handleFormInput();
+}
+
+function handleFormInput() {
+  const data = {
+    name: document.getElementById('name').value.trim(),
+    role: document.getElementById('role').value.trim(),
+    photoUrl: document.getElementById('photoUrl').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    instagram: document.getElementById('instagram').value.trim(),
+    website: document.getElementById('website').value.trim()
+  };
+
+  const html = generateSignature(data);
+
+  const preview = document.getElementById('preview');
+  if (preview) {
+    if (!data.name && !data.role && !data.photoUrl && !data.email && !data.phone && !data.instagram && !data.website) {
+      preview.innerHTML = '<p style="color: #9ca3af; text-align: center; margin: 40px 0;">Preencha os campos para visualizar a assinatura</p>';
+    } else {
+      preview.innerHTML = html;
+    }
+  }
+
+  const codeOutput = document.getElementById('code-output');
+  if (codeOutput) codeOutput.textContent = html;
+
+  validateAndShowErrors(data);
+}
+
+function validateAndShowErrors(data) {
+  // Email
+  const emailInput = document.getElementById('email');
+  const emailError = document.getElementById('email-error');
+  if (emailInput && emailError) {
+    if (data.email && !validateEmail(data.email)) {
+      emailError.textContent = 'Formato de e-mail inválido';
+      emailInput.classList.add('invalid');
+      emailInput.classList.remove('valid');
+    } else {
+      emailError.textContent = '';
+      emailInput.classList.remove('invalid');
+      if (data.email) emailInput.classList.add('valid');
+      else emailInput.classList.remove('valid');
+    }
+  }
+
+  // Phone
+  const phoneInput = document.getElementById('phone');
+  const phoneError = document.getElementById('phone-error');
+  if (phoneInput && phoneError) {
+    if (data.phone && !validatePhone(data.phone)) {
+      phoneError.textContent = 'Telefone contém caracteres inválidos';
+      phoneInput.classList.add('invalid');
+      phoneInput.classList.remove('valid');
+    } else {
+      phoneError.textContent = '';
+      phoneInput.classList.remove('invalid');
+      if (data.phone) phoneInput.classList.add('valid');
+      else phoneInput.classList.remove('valid');
+    }
+  }
+
+  // Photo URL
+  const photoInput = document.getElementById('photoUrl');
+  const photoError = document.getElementById('photoUrl-error');
+  if (photoInput && photoError) {
+    if (data.photoUrl && !validatePhotoUrl(data.photoUrl)) {
+      photoError.textContent = 'URL deve iniciar com https://';
+      photoInput.classList.add('invalid');
+      photoInput.classList.remove('valid');
+    } else {
+      photoError.textContent = '';
+      photoInput.classList.remove('invalid');
+      if (data.photoUrl) photoInput.classList.add('valid');
+      else photoInput.classList.remove('valid');
+    }
+  }
+}
+
+async function copyToClipboard() {
+  const codeOutput = document.getElementById('code-output');
+  if (!codeOutput) return;
+
+  const text = codeOutput.textContent;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    showCopyFeedback();
+  } catch (e) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+      document.execCommand('copy');
+      showCopyFeedback();
+    } catch (e2) {
+      textarea.style.position = 'static';
+      textarea.style.opacity = '1';
+      textarea.focus();
+      textarea.select();
+      return;
+    }
+
+    document.body.removeChild(textarea);
+  }
+}
+
+function showCopyFeedback() {
+  const feedback = document.getElementById('copy-feedback');
+  if (!feedback) return;
+  feedback.removeAttribute('hidden');
+  setTimeout(function() {
+    feedback.setAttribute('hidden', '');
+  }, 2000);
+}
+
+function init() {
+  try {
+    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]');
+    inputs.forEach(function(input) {
+      input.addEventListener('input', handleFormInput);
+    });
+
+    const regionSelect = document.getElementById('region');
+    if (regionSelect) {
+      regionSelect.addEventListener('change', function(e) {
+        handleRegionChange(e.target.value);
+      });
+    }
+
+    const copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', copyToClipboard);
+    }
+
+    // Pre-fill fields with initial region value and generate initial preview
+    const initialRegion = regionSelect ? regionSelect.value : 'brasil';
+    handleRegionChange(initialRegion);
+    
+    // Force an initial render
+    handleFormInput();
+  } catch (err) {
+    console.error('Erro na inicialização:', err);
+  }
+}
+
+// Try both DOMContentLoaded and window.onload for maximum compatibility
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+  </script>
+</body>
+</html>
