@@ -1,6 +1,5 @@
 #!/bin/bash
-# Script para atualizar o projeto no GitHub automaticamente
-# Basta dar dois cliques neste arquivo!
+# Dois cliques para publicar no GitHub
 
 cd "$(dirname "$0")"
 
